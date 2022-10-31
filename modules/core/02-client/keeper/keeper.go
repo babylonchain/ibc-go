@@ -53,6 +53,14 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+host.ModuleName+"/"+types.SubModuleName)
 }
 
+func (k Keeper) GetStoreKey() storetypes.StoreKey {
+	return k.storeKey
+}
+
+func (k Keeper) GetCdc() codec.BinaryCodec {
+	return k.cdc
+}
+
 // GenerateClientIdentifier returns the next client identifier.
 func (k Keeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) string {
 	nextClientSeq := k.GetNextClientSequence(ctx)

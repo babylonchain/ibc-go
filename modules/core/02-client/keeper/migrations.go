@@ -3,16 +3,17 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clientexported "github.com/cosmos/ibc-go/v5/modules/core/02-client/exported"
 	v100 "github.com/cosmos/ibc-go/v5/modules/core/02-client/legacy/v100"
 )
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
-	keeper Keeper
+	keeper clientexported.ClientKeeper
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(keeper Keeper) Migrator {
+func NewMigrator(keeper clientexported.ClientKeeper) Migrator {
 	return Migrator{keeper: keeper}
 }
 
@@ -23,5 +24,5 @@ func NewMigrator(keeper Keeper) Migrator {
 // - prunes expired tendermint consensus states
 // - adds iteration and processed height keys for unexpired tendermint consensus states
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
-	return v100.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
+	return v100.MigrateStore(ctx, m.keeper.GetStoreKey(), m.keeper.GetCdc())
 }
