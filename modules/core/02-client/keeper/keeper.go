@@ -65,6 +65,14 @@ func (k Keeper) UpdateLocalhostClient(ctx sdk.Context, clientState exported.Clie
 	return clientState.UpdateState(ctx, k.cdc, k.ClientStore(ctx, exported.LocalhostClientID), nil)
 }
 
+func (k Keeper) GetStoreKey() storetypes.StoreKey {
+	return k.storeKey
+}
+
+func (k Keeper) GetCdc() codec.BinaryCodec {
+	return k.cdc
+}
+
 // GenerateClientIdentifier returns the next client identifier.
 func (k Keeper) GenerateClientIdentifier(ctx sdk.Context, clientType string) string {
 	nextClientSeq := k.GetNextClientSequence(ctx)

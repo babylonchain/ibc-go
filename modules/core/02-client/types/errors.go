@@ -36,4 +36,7 @@ var (
 	ErrClientNotActive                        = sdkerrors.Register(SubModuleName, 29, "client state is not active")
 	ErrFailedMembershipVerification           = sdkerrors.Register(SubModuleName, 30, "membership verification failed")
 	ErrFailedNonMembershipVerification        = sdkerrors.Register(SubModuleName, 31, "non-membership verification failed")
+	// dishonest majority errors in Babylon
+	ErrForkedHeaderWithValidCommit = sdkerrors.Register(SubModuleName, 32, "header has a valid QC but is on a fork")
+	ErrHeaderNonMonotonicTimestamp = sdkerrors.Register(SubModuleName, 33, "header has a valid QC but its timestamp is not monotomic")
 )
