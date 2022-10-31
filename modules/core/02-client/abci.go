@@ -3,13 +3,13 @@ package client
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/keeper"
+	clientexported "github.com/cosmos/ibc-go/v5/modules/core/02-client/exported"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
 )
 
 // BeginBlocker updates an existing localhost client with the latest block height.
-func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
+func BeginBlocker(ctx sdk.Context, k clientexported.ClientKeeper) {
 	plan, found := k.GetUpgradePlan(ctx)
 	if found {
 		// Once we are at the last block this chain will commit, set the upgraded consensus state
