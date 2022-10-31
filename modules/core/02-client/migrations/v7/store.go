@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	clientexported "github.com/cosmos/ibc-go/v7/modules/core/02-client/exported"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
@@ -28,7 +29,7 @@ const Localhost string = "09-localhost"
 // - Pruning all solo machine consensus states
 // - Removing the localhost client
 // - Asserting existing tendermint clients are properly registered on the chain codec
-func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec, clientKeeper clientexported.ClientKeeper) error {
 	store := ctx.KVStore(storeKey)
 
 	if err := handleSolomachineMigration(ctx, store, cdc, clientKeeper); err != nil {
@@ -48,7 +49,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 
 // handleSolomachineMigration iterates over the solo machine clients and migrates client state from
 // protobuf definition v2 to v3. All consensus states stored outside of the client state are pruned.
-func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, clientKeeper clientexported.ClientKeeper) error {
 	clients, err := collectClients(ctx, store, exported.Solomachine)
 	if err != nil {
 		return err
@@ -85,7 +86,7 @@ func handleSolomachineMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bi
 
 // handlerTendermintMigration asserts that the tendermint client in state can be decoded properly.
 // This ensures the upgrading chain properly registered the tendermint client types on the chain codec.
-func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, clientKeeper clientexported.ClientKeeper) error {
 	clients, err := collectClients(ctx, store, exported.Tendermint)
 	if err != nil {
 		return err
@@ -117,7 +118,7 @@ func handleTendermintMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.Bin
 }
 
 // handleLocalhostMigration removes all client and consensus states associated with the localhost client type.
-func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func handleLocalhostMigration(ctx sdk.Context, store sdk.KVStore, cdc codec.BinaryCodec, clientKeeper clientexported.ClientKeeper) error {
 	clients, err := collectClients(ctx, store, Localhost)
 	if err != nil {
 		return err
