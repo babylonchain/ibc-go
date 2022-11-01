@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
 // ExtendedKeeper is same as the original Keeper, except that
@@ -65,8 +66,11 @@ func (ek ExtendedKeeper) UpdateClient(ctx sdk.Context, clientID string, header e
 
 		// TODO: ensure the header has a valid QC
 
+		// get hash of the tx that includes this header
+		txHash := tmhash.Sum(ctx.TxBytes())
+
 		// invoke hooks
-		ek.AfterHeaderWithQC(ctx, tmHeader)
+		ek.AfterHeaderWithQC(ctx, txHash, tmHeader)
 	}
 
 	// TODO: inject our own verification rules

@@ -7,7 +7,7 @@ import (
 
 // ClientHooks defines the hook interface for client
 type ClientHooks interface {
-	AfterHeaderWithQC(ctx sdk.Context, header *ibctmtypes.Header)
+	AfterHeaderWithQC(ctx sdk.Context, txHash []byte, header *ibctmtypes.Header)
 }
 
 // MultiClientHooks is a concrete implementation of ClientHooks
@@ -21,17 +21,17 @@ func NewMultiClientHooks(hooks ...ClientHooks) MultiClientHooks {
 }
 
 // invoke hooks in each keeper that hooks onto ExtendedKeeper
-func (h MultiClientHooks) AfterHeaderWithQC(ctx sdk.Context, header *ibctmtypes.Header) {
+func (h MultiClientHooks) AfterHeaderWithQC(ctx sdk.Context, txHash []byte, header *ibctmtypes.Header) {
 	for i := range h {
-		h[i].AfterHeaderWithQC(ctx, header)
+		h[i].AfterHeaderWithQC(ctx, txHash, header)
 	}
 }
 
 // ensure ExtendedKeeper implements ClientHooks interfaces
 var _ ClientHooks = ExtendedKeeper{}
 
-func (ek ExtendedKeeper) AfterHeaderWithQC(ctx sdk.Context, header *ibctmtypes.Header) {
+func (ek ExtendedKeeper) AfterHeaderWithQC(ctx sdk.Context, txHash []byte, header *ibctmtypes.Header) {
 	if ek.hooks != nil {
-		ek.hooks.AfterHeaderWithQC(ctx, header)
+		ek.hooks.AfterHeaderWithQC(ctx, txHash, header)
 	}
 }
