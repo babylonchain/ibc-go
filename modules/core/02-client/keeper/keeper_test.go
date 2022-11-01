@@ -15,7 +15,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/keeper"
+	clientexported "github.com/cosmos/ibc-go/v5/modules/core/02-client/exported"
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
@@ -57,7 +57,7 @@ type KeeperTestSuite struct {
 
 	cdc            codec.Codec
 	ctx            sdk.Context
-	keeper         *keeper.Keeper
+	keeper         clientexported.ClientKeeper
 	consensusState *ibctmtypes.ConsensusState
 	header         *ibctmtypes.Header
 	valSet         *tmtypes.ValidatorSet
@@ -86,7 +86,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.cdc = app.AppCodec()
 	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{Height: height, ChainID: testClientID, Time: now2})
-	suite.keeper = &app.IBCKeeper.ClientKeeper
+	suite.keeper = app.IBCKeeper.ClientKeeper
 	suite.privVal = ibctestingmock.NewPV()
 
 	pubKey, err := suite.privVal.GetPubKey()
