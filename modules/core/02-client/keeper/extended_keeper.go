@@ -21,7 +21,7 @@ import (
 // ExtendedKeeper is same as the original Keeper, except that
 // - it provides hooks for notifying other modules on received headers
 // - it applies different verification rules on received headers
-//   (notably, choosing forks rather than freezing clients upon conflicted headers with QCS)
+//   (notably, intercepting headers rather than freezing clients upon errors that indicate dishonest majority)
 type ExtendedKeeper struct {
 	Keeper
 	hooks ClientHooks
@@ -57,10 +57,23 @@ func (ek *ExtendedKeeper) SetHooks(ch ClientHooks) *ExtendedKeeper {
 	return ek
 }
 
+// UpdateClient applies all verification rules on the header before executing the original UpdateClient() logic.
+// There are three possible outcomes after the verification:
+// 1. All verifications are passed: timestamp the header, pass the header to original UpdateClient()
+// 2. Verification fails with errors that only happen upon dishonest majority: timestamp the header, don't pass the header to original UpdateClient()
+// 3. Verification fails with normal errors: don't timestamp the header, don't pass the header to original UpdateClient()
 func (ek ExtendedKeeper) UpdateClient(ctx sdk.Context, clientID string, header exported.Header) error {
-	// header can be nil in the original IBC-Go design, e.g., in `BeginBlocker`
-	// Our logic only applies when header is not nil
-	if header != nil {
+	// check if the client type is 07-tendermint
+	clientState, found := ek.GetClientState(ctx, clientID)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrClientNotFound, "cannot update client with ID %s", clientID)
+	}
+	_, isTmClient := clientState.(*ibctmtypes.ClientState)
+
+	// Our logic only applies when
+	// - header is not nil (header can be nil in the original IBC-Go design, e.g., in `BeginBlocker`)
+	// - the client type is 07-tendermint (IBC-Go only supports 07-tendermint client at the moment)
+	if header != nil && isTmClient {
 		// asserting
 		// copied from `modules/light-clients/07-tendermint/types/update.go#L57`
 		tmHeader, ok := header.(*ibctmtypes.Header)
