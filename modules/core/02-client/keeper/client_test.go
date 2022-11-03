@@ -153,7 +153,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			conflictConsState := updateHeader.ConsensusState()
 			conflictConsState.Root = commitmenttypes.NewMerkleRoot([]byte("conflicting apphash"))
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientID, updateHeader.GetHeight(), conflictConsState)
-		}, true, true},
+		}, false, false}, // Babylon modification: fork headers are rejected before being passed to ClientState
 		{"misbehaviour detection: monotonic time violation", func() {
 			clientState := path.EndpointA.GetClientState().(*ibctmtypes.ClientState)
 			clientID := path.EndpointA.ClientID
@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 
 			updateHeader = createFutureUpdateFn(trustedHeight)
-		}, true, true},
+		}, false, false}, // Babylon modification: non-monotonic headers are rejected before being passed to ClientState
 		{"client state not found", func() {
 			updateHeader = createFutureUpdateFn(path.EndpointA.GetClientState().GetLatestHeight().(types.Height))
 

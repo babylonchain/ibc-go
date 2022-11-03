@@ -34,4 +34,7 @@ var (
 	ErrInvalidSubstitute                      = sdkerrors.Register(SubModuleName, 27, "invalid client state substitute")
 	ErrInvalidUpgradeProposal                 = sdkerrors.Register(SubModuleName, 28, "invalid upgrade proposal")
 	ErrClientNotActive                        = sdkerrors.Register(SubModuleName, 29, "client is not active")
+	// dishonest majority errors in Babylon
+	ErrForkedHeaderWithQC          = sdkerrors.Register(SubModuleName, 30, "header has a valid QC but is on a fork")
+	ErrHeaderNonMonotonicTimestamp = sdkerrors.Register(SubModuleName, 31, "header has a valid QC but its timestamp is not monotomic")
 )
