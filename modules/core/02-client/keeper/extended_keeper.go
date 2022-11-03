@@ -75,8 +75,8 @@ func (ek ExtendedKeeper) UpdateClient(ctx sdk.Context, clientID string, header e
 
 		// good header, timestamp it on the canonical chain indexer
 		if err == nil {
-			txHash := tmhash.Sum(ctx.TxBytes())                // get hash of the tx that includes this header
-			ek.AfterHeaderWithQC(ctx, txHash, tmHeader, false) // invoke hooks to notify ZoneConcierge to timestamp this header
+			txHash := tmhash.Sum(ctx.TxBytes())                         // get hash of the tx that includes this header
+			ek.AfterHeaderWithValidCommit(ctx, txHash, tmHeader, false) // invoke hooks to notify ZoneConcierge to timestamp this header
 		}
 
 		// The header has a QC but {is on a fork, its timestamp is not monotonic}, timestamp it on the fork indexer, and return to avoid freezing the light client
@@ -84,7 +84,7 @@ func (ek ExtendedKeeper) UpdateClient(ctx sdk.Context, clientID string, header e
 		if sdkerrors.IsOf(err, types.ErrForkedHeaderWithQC, types.ErrHeaderNonMonotonicTimestamp) {
 			ctx.Logger().Debug("received a header that has QC but is on a fork")
 			txHash := tmhash.Sum(ctx.TxBytes())
-			ek.AfterHeaderWithQC(ctx, txHash, tmHeader, true)
+			ek.AfterHeaderWithValidCommit(ctx, txHash, tmHeader, true)
 			return err
 		}
 
