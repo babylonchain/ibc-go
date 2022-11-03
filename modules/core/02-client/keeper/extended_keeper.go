@@ -27,7 +27,7 @@ type ExtendedKeeper struct {
 	hooks ClientHooks
 }
 
-// NewKeeper creates a new NewKeeper instance
+// NewExtendedKeeper creates a new NewExtendedKeeper instance
 func NewExtendedKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace paramtypes.Subspace, sk types.StakingKeeper, uk types.UpgradeKeeper) ExtendedKeeper {
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
