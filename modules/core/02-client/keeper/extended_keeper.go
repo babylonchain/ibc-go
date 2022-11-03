@@ -70,7 +70,7 @@ func (ek ExtendedKeeper) UpdateClient(ctx sdk.Context, clientID string, header e
 		txHash := tmhash.Sum(ctx.TxBytes())
 
 		// invoke hooks
-		ek.AfterHeaderWithQC(ctx, txHash, tmHeader)
+		ek.AfterHeaderWithValidCommit(ctx, txHash, tmHeader)
 	}
 
 	// TODO: inject our own verification rules
