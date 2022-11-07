@@ -94,7 +94,7 @@ func (ek ExtendedKeeper) UpdateClient(ctx sdk.Context, clientID string, header e
 
 		// The header has a QC but {is on a fork, its timestamp is not monotonic}, timestamp it on the fork indexer, and return to avoid freezing the light client
 		// These two errors only happen upon dishonest majority
-		if sdkerrors.IsOf(err, types.ErrForkedHeaderWithQC, types.ErrHeaderNonMonotonicTimestamp) {
+		if sdkerrors.IsOf(err, types.ErrForkedHeaderWithValidCommit, types.ErrHeaderNonMonotonicTimestamp) {
 			ctx.Logger().Debug("received a header that has QC but is on a fork")
 			txHash := tmhash.Sum(ctx.TxBytes())
 			ek.AfterHeaderWithValidCommit(ctx, txHash, tmHeader, true)
@@ -133,9 +133,9 @@ func (ek ExtendedKeeper) checkHeader(ctx sdk.Context, clientID string, tmHeader 
 	// If the consensus state exists, and it does not match this header, then this header is on a fork
 	// (adapted from https://github.com/cosmos/ibc-go/blob/v5.0.0/modules/light-clients/07-tendermint/types/update.go#L63-L77)
 	isOnFork := false
-	conflictingState, _ := ibctmtypes.GetConsensusState(clientStore, ek.cdc, tmHeader.GetHeight())
-	if conflictingState != nil {
-		if !reflect.DeepEqual(conflictingState, tmHeader.ConsensusState()) {
+	prevConsState, _ := ibctmtypes.GetConsensusState(clientStore, ek.cdc, tmHeader.GetHeight())
+	if prevConsState != nil {
+		if !reflect.DeepEqual(prevConsState, tmHeader.ConsensusState()) {
 			isOnFork = true
 		}
 	}
@@ -162,7 +162,7 @@ func (ek ExtendedKeeper) checkHeader(ctx sdk.Context, clientID string, tmHeader 
 
 	// this header passes QC verifications but is on a fork
 	if isOnFork {
-		return types.ErrForkedHeaderWithQC
+		return types.ErrForkedHeaderWithValidCommit
 	}
 
 	consState := tmHeader.ConsensusState()
