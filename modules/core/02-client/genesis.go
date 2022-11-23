@@ -5,9 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clientexported "github.com/cosmos/ibc-go/v5/modules/core/02-client/exported"
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // InitGenesis initializes the ibc client submodule's state from a provided genesis
@@ -46,25 +46,21 @@ func InitGenesis(ctx sdk.Context, k clientexported.ClientKeeper, gs types.Genesi
 	}
 
 	k.SetNextClientSequence(ctx, gs.NextClientSequence)
-
-	// NOTE: localhost creation is specifically disallowed for the time being.
-	// Issue: https://github.com/cosmos/cosmos-sdk/issues/7871
 }
 
 // ExportGenesis returns the ibc client submodule's exported genesis.
-// NOTE: CreateLocalhost should always be false on export since a
-// created localhost will be included in the exported clients.
-func ExportGenesis(ctx sdk.Context, k clientexported.ClientKeeper) types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	genClients := k.GetAllGenesisClients(ctx)
 	clientsMetadata, err := k.GetAllClientMetadata(ctx, genClients)
 	if err != nil {
 		panic(err)
 	}
 	return types.GenesisState{
-		Clients:            genClients,
-		ClientsMetadata:    clientsMetadata,
-		ClientsConsensus:   k.GetAllConsensusStates(ctx),
-		Params:             k.GetParams(ctx),
+		Clients:          genClients,
+		ClientsMetadata:  clientsMetadata,
+		ClientsConsensus: k.GetAllConsensusStates(ctx),
+		Params:           k.GetParams(ctx),
+		// Warning: CreateLocalhost is deprecated
 		CreateLocalhost:    false,
 		NextClientSequence: k.GetNextClientSequence(ctx),
 	}

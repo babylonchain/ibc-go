@@ -7,9 +7,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	controllertypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	hosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
+	controllertypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
+	hosttypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
 )
 
 // RandomEnabled randomized controller or host enabled param with 75% prob of being true.
@@ -30,7 +31,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 		ControllerEnabled: controllerEnabled,
 	}
 
-	controllerGenesisState := types.ControllerGenesisState{
+	controllerGenesisState := genesistypes.ControllerGenesisState{
 		ActiveChannels:     nil,
 		InterchainAccounts: nil,
 		Ports:              []string{},
@@ -48,14 +49,14 @@ func RandomizedGenState(simState *module.SimulationState) {
 		AllowMessages: []string{"*"}, // allow all messages
 	}
 
-	hostGenesisState := types.HostGenesisState{
+	hostGenesisState := genesistypes.HostGenesisState{
 		ActiveChannels:     nil,
 		InterchainAccounts: nil,
-		Port:               types.PortID,
+		Port:               types.HostPortID,
 		Params:             hostParams,
 	}
 
-	icaGenesis := types.GenesisState{
+	icaGenesis := genesistypes.GenesisState{
 		ControllerGenesisState: controllerGenesisState,
 		HostGenesisState:       hostGenesisState,
 	}

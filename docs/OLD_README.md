@@ -28,8 +28,6 @@ For the general specification please refer to the [Interchain Standards](https:/
 
     3.2 [Tendermint Client](./../light-clients/07-tendermint/spec/README.md)
 
-    3.3 [Localhost Client](./../light-clients/09-localhost/spec/README.md)
-
 ## Implementation Details
 
 As stated above, the IBC implementation on the Cosmos SDK introduces some changes
@@ -48,7 +46,6 @@ in the SDK's `x/ibc` module:
 * [ICS 005 - Port Allocation](https://github.com/cosmos/ics/blob/master/spec/ics-005-port-allocation): Implemented in [`x/ibc/core/05-port`](https://github.com/cosmos/tree/master/ibc/core/05-port)
 * [ICS 006 - Solo Machine Client](https://github.com/cosmos/ics/blob/master/spec/ics-006-solo-machine-client): Implemented in [`x/ibc/light-clients/06-solomachine`](https://github.com/cosmos/tree/master/ibc/solomachine)
 * [ICS 007 - Tendermint Client](https://github.com/cosmos/ics/blob/master/spec/ics-007-tendermint-client): Implemented in [`x/ibc/light-clients/07-tendermint`](https://github.com/cosmos/tree/master/ibc/light-clients/07-tendermint)
-* [ICS 009 - Loopback Client](https://github.com/cosmos/ics/blob/master/spec/ics-009-loopback-client):  Implemented in [`x/ibc/light-clients/09-localhost`](https://github.com/cosmos/tree/master/ibc/light-clients/09-localhost)
 * [ICS 018- Relayer Algorithms](https://github.com/cosmos/ics/tree/master/spec/ics-018-relayer-algorithms): Implemented in it's own [relayer repository](https://github.com/cosmos/relayer)
 * [ICS 020 - Fungible Token Transfer](https://github.com/cosmos/ics/tree/master/spec/ics-020-fungible-token-transfer): Implemented in [`x/ibc/applications/transfer`](https://github.com/cosmos/tree/master/ibc/applications/transfer)
 * [ICS 023 - Vector Commitments](https://github.com/cosmos/ics/tree/master/spec/ics-023-vector-commitments): Implemented in [`x/ibc/core/23-commitment`](https://github.com/cosmos/tree/master/ibc/core/23-commitment)

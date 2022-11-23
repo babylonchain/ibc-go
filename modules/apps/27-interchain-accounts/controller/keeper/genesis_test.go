@@ -1,25 +1,33 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/keeper"
-	"github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/controller/types"
+	genesistypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/genesis/types"
+	icatypes "github.com/cosmos/ibc-go/v6/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {
 	suite.SetupTest()
 
 	interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
-	genesisState := icatypes.ControllerGenesisState{
-		ActiveChannels: []icatypes.ActiveChannel{
+	genesisState := genesistypes.ControllerGenesisState{
+		ActiveChannels: []genesistypes.ActiveChannel{
 			{
-				ConnectionId: ibctesting.FirstConnectionID,
-				PortId:       TestPortID,
-				ChannelId:    ibctesting.FirstChannelID,
+				ConnectionId:        ibctesting.FirstConnectionID,
+				PortId:              TestPortID,
+				ChannelId:           ibctesting.FirstChannelID,
+				IsMiddlewareEnabled: true,
+			},
+			{
+				ConnectionId:        "connection-1",
+				PortId:              "test-port-1",
+				ChannelId:           "channel-1",
+				IsMiddlewareEnabled: false,
 			},
 		},
-		InterchainAccounts: []icatypes.RegisteredInterchainAccount{
+		InterchainAccounts: []genesistypes.RegisteredInterchainAccount{
 			{
 				ConnectionId:   ibctesting.FirstConnectionID,
 				PortId:         TestPortID,
@@ -34,6 +42,12 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	channelID, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
 	suite.Require().True(found)
 	suite.Require().Equal(ibctesting.FirstChannelID, channelID)
+
+	isMiddlewareEnabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareEnabled(suite.chainA.GetContext(), TestPortID, ibctesting.FirstConnectionID)
+	suite.Require().True(isMiddlewareEnabled)
+
+	isMiddlewareDisabled := suite.chainA.GetSimApp().ICAControllerKeeper.IsMiddlewareDisabled(suite.chainA.GetContext(), "test-port-1", "connection-1")
+	suite.Require().True(isMiddlewareDisabled)
 
 	accountAdrr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
 	suite.Require().True(found)
@@ -60,6 +74,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 
 	suite.Require().Equal(path.EndpointA.ChannelID, genesisState.ActiveChannels[0].ChannelId)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.ActiveChannels[0].PortId)
+	suite.Require().True(genesisState.ActiveChannels[0].IsMiddlewareEnabled)
 
 	suite.Require().Equal(interchainAccAddr, genesisState.InterchainAccounts[0].AccountAddress)
 	suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.InterchainAccounts[0].PortId)
