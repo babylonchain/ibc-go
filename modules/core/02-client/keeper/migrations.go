@@ -8,11 +8,11 @@ import (
 
 // Migrator is a struct for handling in-place store migrations.
 type Migrator struct {
-	keeper clientexported.ClientKeeper
+	keeper Keeper
 }
 
 // NewMigrator returns a new Migrator.
-func NewMigrator(keeper clientexported.ClientKeeper) Migrator {
+func NewMigrator(keeper Keeper) Migrator {
 	return Migrator{keeper: keeper}
 }
 
@@ -23,5 +23,5 @@ func NewMigrator(keeper clientexported.ClientKeeper) Migrator {
 // - prunes expired tendermint consensus states
 // - adds iteration and processed height keys for unexpired tendermint consensus states
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
-	return v100.MigrateStore(ctx, m.keeper.GetStoreKey(), m.keeper.GetCdc())
+	return v100.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
 }
