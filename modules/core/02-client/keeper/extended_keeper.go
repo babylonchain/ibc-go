@@ -10,18 +10,18 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/light"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 // ExtendedKeeper is same as the original Keeper, except that
-// - it provides hooks for notifying other modules on received headers
-// - it applies different verification rules on received headers
-//   (notably, intercepting headers rather than freezing clients upon errors that indicate dishonest majority)
+//   - it provides hooks for notifying other modules on received headers
+//   - it applies different verification rules on received headers
+//     (notably, intercepting headers rather than freezing clients upon errors that indicate dishonest majority)
 type ExtendedKeeper struct {
 	Keeper
 	hooks ClientHooks
