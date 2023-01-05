@@ -4,8 +4,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	clientkeeper "github.com/cosmos/ibc-go/v5/modules/core/02-client/keeper"
+	clientexported "github.com/cosmos/ibc-go/v5/modules/core/02-client/exported"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
@@ -16,7 +15,7 @@ import (
 const Localhost string = "09-localhost"
 
 // MigrateToV5 prunes the 09-Localhost client and associated consensus states from the ibc store
-func MigrateToV5(ctx sdk.Context, clientKeeper clientkeeper.Keeper) {
+func MigrateToV5(ctx sdk.Context, clientKeeper clientexported.ClientKeeper) {
 	clientStore := clientKeeper.ClientStore(ctx, Localhost)
 
 	iterator := sdk.KVStorePrefixIterator(clientStore, []byte(host.KeyConsensusStatePrefix))

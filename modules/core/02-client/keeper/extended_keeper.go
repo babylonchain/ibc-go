@@ -12,16 +12,16 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/light"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 // ExtendedKeeper is same as the original Keeper, except that
-// - it provides hooks for notifying other modules on received headers
-// - it applies different verification rules on received headers
-//   (notably, intercepting headers rather than freezing clients upon errors that indicate dishonest majority)
+//   - it provides hooks for notifying other modules on received headers
+//   - it applies different verification rules on received headers
+//     (notably, intercepting headers rather than freezing clients upon errors that indicate dishonest majority)
 type ExtendedKeeper struct {
 	Keeper
 	hooks ClientHooks
@@ -62,7 +62,7 @@ func (ek *ExtendedKeeper) SetHooks(ch ClientHooks) *ExtendedKeeper {
 // 1. All verifications are passed: timestamp the header, pass the header to original UpdateClient()
 // 2. Verification fails with errors that only happen upon dishonest majority: timestamp the header, don't pass the header to original UpdateClient()
 // 3. Verification fails with normal errors: don't timestamp the header, don't pass the header to original UpdateClient()
-func (ek ExtendedKeeper) UpdateClient(ctx sdk.Context, clientID string, header exported.Header) error {
+func (ek ExtendedKeeper) UpdateClient(ctx sdk.Context, clientID string, header exported.ClientMessage) error {
 	// check if the client type is 07-tendermint
 	clientState, found := ek.GetClientState(ctx, clientID)
 	if !found {
@@ -73,23 +73,28 @@ func (ek ExtendedKeeper) UpdateClient(ctx sdk.Context, clientID string, header e
 	// Our logic only applies when
 	// - header is not nil (header can be nil in the original IBC-Go design, e.g., in `BeginBlocker`)
 	// - the client type is 07-tendermint (IBC-Go only supports 07-tendermint client at the moment)
-	if header != nil && isTmClient {
-		// asserting
-		// copied from `modules/light-clients/07-tendermint/types/update.go#L57`
-		tmHeader, ok := header.(*ibctmtypes.Header)
-		if !ok {
-			return sdkerrors.Wrapf(
-				types.ErrInvalidHeader, "expected type %T, got %T", &ibctmtypes.Header{}, header,
-			)
-		}
+	if header == nil {
+		return ek.Keeper.UpdateClient(ctx, clientID, header)
+	}
 
-		// apply all verification rules to the header
-		err := ek.checkHeader(ctx, clientID, tmHeader)
+	// TODO to support wasm client, we obviously need to do something different here.
+	// whole callback AfterHeaderWithValidCommit, must be generalized to support
+	// other client types, not only tendermint.
+	if !isTmClient {
+		return ek.Keeper.UpdateClient(ctx, clientID, header)
+	}
+
+	switch msg := header.(type) {
+	case *ibctmtypes.Header:
+		// TODO in ibc-go v7 this whole verification was moved to seprarate function
+		// clientState.CheckForMisbehaviour. Probably we can do a lot of simplifications
+		// here.
+		err := ek.checkHeader(ctx, clientID, msg)
 
 		// good header, timestamp it on the canonical chain indexer
 		if err == nil {
-			txHash := tmhash.Sum(ctx.TxBytes())                         // get hash of the tx that includes this header
-			ek.AfterHeaderWithValidCommit(ctx, txHash, tmHeader, false) // invoke hooks to notify ZoneConcierge to timestamp this header
+			txHash := tmhash.Sum(ctx.TxBytes())                    // get hash of the tx that includes this header
+			ek.AfterHeaderWithValidCommit(ctx, txHash, msg, false) // invoke hooks to notify ZoneConcierge to timestamp this header
 		}
 
 		// The header has a QC but {is on a fork, its timestamp is not monotonic}, timestamp it on the fork indexer, and return to avoid freezing the light client
@@ -97,7 +102,7 @@ func (ek ExtendedKeeper) UpdateClient(ctx sdk.Context, clientID string, header e
 		if sdkerrors.IsOf(err, types.ErrForkedHeaderWithValidCommit, types.ErrHeaderNonMonotonicTimestamp) {
 			ctx.Logger().Debug("received a header that has QC but is on a fork")
 			txHash := tmhash.Sum(ctx.TxBytes())
-			ek.AfterHeaderWithValidCommit(ctx, txHash, tmHeader, true)
+			ek.AfterHeaderWithValidCommit(ctx, txHash, msg, true)
 			return err
 		}
 
@@ -105,11 +110,16 @@ func (ek ExtendedKeeper) UpdateClient(ctx sdk.Context, clientID string, header e
 		if err != nil {
 			return err
 		}
-	}
 
-	// the header has a valid QC and is extending canonical chain
-	// follow the original verification rules to update client state
-	return ek.Keeper.UpdateClient(ctx, clientID, header)
+		// the header has a valid QC and is extending canonical chain
+		// follow the original verification rules to update client state
+		return ek.Keeper.UpdateClient(ctx, clientID, header)
+	case *ibctmtypes.Misbehaviour:
+		// on Misbehaviour,just forward to standard client logic
+		return ek.Keeper.UpdateClient(ctx, clientID, header)
+	default:
+		return types.ErrInvalidClientType
+	}
 }
 
 // checkHeader checks
@@ -143,10 +153,10 @@ func (ek ExtendedKeeper) checkHeader(ctx sdk.Context, clientID string, tmHeader 
 	// Check if the header can pass all verification rules, including the QC
 	// Note that the first header on a fork can also be valid
 	// (adapted from https://github.com/cosmos/ibc-go/blob/v5.0.0/modules/light-clients/07-tendermint/types/update.go#L79-L89)
-	trustedConsState, err := ibctmtypes.GetConsensusState(clientStore, ek.cdc, tmHeader.TrustedHeight)
-	if err != nil {
+	trustedConsState, exists := ibctmtypes.GetConsensusState(clientStore, ek.cdc, tmHeader.TrustedHeight)
+	if !exists {
 		return sdkerrors.Wrapf(
-			err, "could not get consensus state from clientstore at TrustedHeight: %s", tmHeader.TrustedHeight,
+			types.ErrConsensusStateNotFound, "could not get consensus state from clientstore at TrustedHeight: %s", tmHeader.TrustedHeight,
 		)
 	}
 	// asserting clientState to that of Tendermint client

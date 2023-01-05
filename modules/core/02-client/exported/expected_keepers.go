@@ -14,9 +14,8 @@ import (
 // ClientKeeper defines the expected interface of the light client used for IBC
 type ClientKeeper interface {
 	CreateClient(ctx sdk.Context, clientState exported.ClientState, consensusState exported.ConsensusState) (string, error)
-	UpdateClient(ctx sdk.Context, clientID string, header exported.Header) error
+	UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error
 	UpgradeClient(ctx sdk.Context, clientID string, upgradedClient exported.ClientState, upgradedConsState exported.ConsensusState, proofUpgradeClient, proofUpgradeConsState []byte) error
-	CheckMisbehaviourAndUpdateState(ctx sdk.Context, misbehaviour exported.Misbehaviour) error
 	GenerateClientIdentifier(ctx sdk.Context, clientType string) string
 	SetClientState(ctx sdk.Context, clientID string, clientState exported.ClientState)
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
@@ -37,7 +36,6 @@ type ClientKeeper interface {
 	GetUpgradedClient(ctx sdk.Context, planHeight int64) ([]byte, bool)
 	GetUpgradedConsensusState(ctx sdk.Context, planHeight int64) ([]byte, bool)
 	SetUpgradedConsensusState(ctx sdk.Context, planHeight int64, bz []byte) error
-	IterateClients(ctx sdk.Context, cb func(clientID string, cs exported.ClientState) bool)
 	GetAllClients(ctx sdk.Context) (states []exported.ClientState)
 	ClientStore(ctx sdk.Context, clientID string) sdk.KVStore
 
