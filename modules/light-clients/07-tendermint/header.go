@@ -13,6 +13,8 @@ import (
 )
 
 var _ exported.ClientMessage = &Header{}
+var _ exported.LCHeader = &Header{}
+
 
 // ConsensusState returns the updated consensus state associated with the header
 func (h Header) ConsensusState() *ConsensusState {
@@ -79,4 +81,8 @@ func (h Header) ValidateBasic() error {
 		return sdkerrors.Wrap(clienttypes.ErrInvalidHeader, "validator set does not match hash")
 	}
 	return nil
+}
+
+func (h Header) HeaderHeight() exported.Height {
+	return h.GetHeight()
 }

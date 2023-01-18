@@ -11,6 +11,7 @@ import (
 )
 
 var _ exported.ClientMessage = &Header{}
+var _ exported.LCHeader = &Header{}
 
 // ClientType defines that the Header is a Solo Machine.
 func (Header) ClientType() string {
@@ -58,4 +59,9 @@ func (h Header) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+func (h Header) HeaderHeight() exported.Height {
+	// for solo machine height is actually sequence number
+	return clienttypes.NewHeight(0, h.Sequence)
 }

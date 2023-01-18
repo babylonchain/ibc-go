@@ -7,6 +7,7 @@ import (
 )
 
 var _ exported.ClientMessage = &Header{}
+var _ exported.LCHeader = &Header{}
 
 func (m Header) ClientType() string {
 	return exported.Wasm
@@ -18,4 +19,10 @@ func (m Header) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+func (h Header) HeaderHeight() exported.Height {
+	// TODO what exactly is this wasm header height ? Does it represent heigh of the
+	// chain inside wasm smart contract ?
+	return h.Height
 }

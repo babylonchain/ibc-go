@@ -155,6 +155,11 @@ type ClientMessage interface {
 	ValidateBasic() error
 }
 
+type LCHeader interface {
+	ClientMessage
+	HeaderHeight() Height
+}
+
 // Height is a wrapper interface over clienttypes.Height
 // all clients must use the concrete implementation in types
 type Height interface {
