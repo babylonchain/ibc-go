@@ -2,12 +2,17 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 // ClientHooks defines the hook interface for client
 type ClientHooks interface {
-	AfterHeaderWithValidCommit(ctx sdk.Context, txHash []byte, header *ibctmtypes.Header, isOnFork bool)
+	AfterHeaderWithValidCommit(ctx sdk.Context, txHash []byte, header *HeaderInfo, isOnFork bool)
+}
+
+type HeaderInfo struct {
+	Hash     []byte
+	ChaindId string
+	Height   uint64
 }
 
 // MultiClientHooks is a concrete implementation of ClientHooks
@@ -21,7 +26,7 @@ func NewMultiClientHooks(hooks ...ClientHooks) MultiClientHooks {
 }
 
 // invoke hooks in each keeper that hooks onto ExtendedKeeper
-func (h MultiClientHooks) AfterHeaderWithValidCommit(ctx sdk.Context, txHash []byte, header *ibctmtypes.Header, isOnFork bool) {
+func (h MultiClientHooks) AfterHeaderWithValidCommit(ctx sdk.Context, txHash []byte, header *HeaderInfo, isOnFork bool) {
 	for i := range h {
 		h[i].AfterHeaderWithValidCommit(ctx, txHash, header, isOnFork)
 	}
@@ -30,7 +35,7 @@ func (h MultiClientHooks) AfterHeaderWithValidCommit(ctx sdk.Context, txHash []b
 // ensure ExtendedKeeper implements ClientHooks interfaces
 var _ ClientHooks = ExtendedKeeper{}
 
-func (ek ExtendedKeeper) AfterHeaderWithValidCommit(ctx sdk.Context, txHash []byte, header *ibctmtypes.Header, isOnFork bool) {
+func (ek ExtendedKeeper) AfterHeaderWithValidCommit(ctx sdk.Context, txHash []byte, header *HeaderInfo, isOnFork bool) {
 	if ek.hooks != nil {
 		ek.hooks.AfterHeaderWithValidCommit(ctx, txHash, header, isOnFork)
 	}
