@@ -11,7 +11,6 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibcsltypes "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
@@ -26,20 +25,13 @@ type ExtendedKeeper struct {
 
 // GetHeaderInfo returns the information necessary for header timestamping or nil
 // if provided message is not a header
-func (ek ExtendedKeeper) GetHeaderInfo(ctx sdk.Context, m exported.ClientMessage) *HeaderInfo {
+func GetHeaderInfo(ctx sdk.Context, m exported.ClientMessage) *HeaderInfo {
 	switch msg := m.(type) {
 	case *ibctmtypes.Header:
 		return &HeaderInfo{
 			Hash:     msg.Header.LastCommitHash,
 			ChaindId: msg.Header.ChainID,
 			Height:   uint64(msg.Header.Height),
-		}
-	case *ibcsltypes.Header:
-		return &HeaderInfo{
-			Hash:   msg.Signature,
-			Height: uint64(msg.Timestamp),
-			// there is no concpet of chain id in solo machine, just use client type for now
-			ChaindId: msg.ClientType(),
 		}
 	default:
 		return nil
@@ -103,7 +95,7 @@ func (k ExtendedKeeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg
 
 	foundMisbehaviour := clientState.CheckForMisbehaviour(ctx, k.cdc, clientStore, clientMsg)
 
-	headerInfo := k.GetHeaderInfo(ctx, clientMsg)
+	headerInfo := GetHeaderInfo(ctx, clientMsg)
 
 	// found misbehaviour and it was not an header, freeze client
 	if foundMisbehaviour && headerInfo == nil {
