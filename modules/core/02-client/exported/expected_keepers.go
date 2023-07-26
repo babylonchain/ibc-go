@@ -69,4 +69,9 @@ type ClientKeeper interface {
 	ClientParams(context.Context, *clienttypes.QueryClientParamsRequest) (*clienttypes.QueryClientParamsResponse, error)
 	UpgradedClientState(context.Context, *clienttypes.QueryUpgradedClientStateRequest) (*clienttypes.QueryUpgradedClientStateResponse, error)
 	UpgradedConsensusState(context.Context, *clienttypes.QueryUpgradedConsensusStateRequest) (*clienttypes.QueryUpgradedConsensusStateResponse, error)
+
+	// ibc 7.2 additions
+	CreateLocalhostClient(ctx sdk.Context) error
+	GetClientStatus(ctx sdk.Context, clientState exported.ClientState, clientID string) exported.Status
+	UpdateLocalhostClient(ctx sdk.Context, clientState exported.ClientState) []exported.Height
 }
